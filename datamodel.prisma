@@ -1,0 +1,108 @@
+type User {
+  id: Int! @id
+  name: String!
+}
+
+type Project {
+  id: Int! @id
+  projectName: String!
+  manager: User! @relation(link: INLINE, name: "ProjectManager")
+  chef: User! @relation(link: INLINE, name: "ProjectChef")
+  status: ProjectStatus! @default(value: ON_HOLD)
+  members: [User!]! @relation(link: TABLE, name: "ProjectMembers")
+  equipments: [Equipment!]! @relation(link: TABLE, name: "ProjectEquipments")
+  consumables: [Consumable!]! @relation(link: TABLE, name: "ProjectConsumables")
+  description: String
+  startDate: DateTime
+  approvalDate: DateTime
+  expirationDate: DateTime
+}
+
+enum ProjectStatus {
+  ON_HOLD
+  APPROVED
+  NOT_APPROVED
+  CANCELED
+}
+
+type Order {
+  id: Int! @id
+  status: OrderStatus!
+  observations: String,
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  closedAt: DateTime
+  project: Project! @relation(link: INLINE, onDelete: CASCADE)
+  administrator: User! @relation(link: INLINE, onDelete: CASCADE, name: "OrderAdministrator")
+  user: User! @relation(link: INLINE, onDelete: CASCADE, name: "OrderUser")
+  takenEquipments: [OrderEquipment!]! @relation(link: TABLE, name: "OrderTakenEquipments") 
+  takenConsumables: [OrderConsumable!]! @relation(link: TABLE, name: "OrderTakenConsumables") 
+}
+
+enum OrderStatus {
+  CREATED
+  CLOSED
+  ON_HOLD
+}
+
+type Equipment {
+  id: Int! @id
+  serial: String!
+  name: String!
+  description: String!
+  available: Boolean! @default(value: true)
+  stock: Int!
+  usable: Boolean! @default(value: true) 
+}
+
+type Consumable {
+  id: Int! @id
+  serial: String!
+  name: String!
+  description: String!
+  available: Boolean! @default(value: true)
+  stock: Int!
+  minimalStock: Int! 
+  price: Float
+  consumableType: String!
+
+}
+
+type OrderEquipment {
+  id: Int! @id
+  equipment: Equipment! @relation(link: INLINE)
+  amount: Int!
+  takenAt: DateTime!
+  returnedAt: DateTime
+}
+
+type OrderConsumable {
+  id: Int! @id
+  consumable: Consumable! @relation(link: INLINE)
+  amount: Int!
+}
+
+type OrderTakenConsumables @relationTable{
+  order: Order!
+  consumable: OrderConsumable!
+}
+
+type OrderTakenEquipments @relationTable {
+  order: Order!
+  equipment: OrderEquipment!
+}
+
+type ProjectConsumables @relationTable{
+  project: Project!
+  consumable: Consumable!
+}
+
+type ProjectEquipments @relationTable {
+  project: Project!
+  equipment: Equipment!
+}
+
+type ProjectMembers @relationTable {
+  project: Project!
+  member: User!
+}
